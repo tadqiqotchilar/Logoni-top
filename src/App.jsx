@@ -1098,21 +1098,7 @@ function App() {
 
   return (
     <div className="game-container">
-      {/* Sound Controller Float */}
-      <button 
-        className="btn-icon" 
-        onClick={toggleMute}
-        style={{
-          position: 'fixed',
-          top: '24px',
-          right: '24px',
-          zIndex: 100,
-          background: 'rgba(255, 255, 255, 0.85)',
-          border: '1px solid var(--border-light)'
-        }}
-      >
-        {muted ? <VolumeX size={18} /> : <Volume2 size={18} />}
-      </button>
+
 
       {/* Screen 1: Levels Grid Screen */}
       {screen === 'grid' && (
@@ -1187,18 +1173,18 @@ function App() {
           {/* Header Bar */}
           <div>
             <div className="header-bar">
-              <button className="btn-icon" onClick={() => { synth.playTap(); tgHaptic.impact('light'); setScreen('grid'); }}>
-                <ArrowLeft size={18} />
-              </button>
+              <div className="quiz-progress-text">
+                {currentLevelIdx + 1} / 15
+              </div>
 
               <div className="coins-badge">
                 <Coins size={16} className="coin-icon-anim" />
                 <span>{coins}</span>
               </div>
 
-              <div className="quiz-progress-text">
-                {currentLevelIdx + 1} / 15
-              </div>
+              <button className="btn-icon" onClick={toggleMute}>
+                {muted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+              </button>
             </div>
 
             {/* Level progress bar - edge to edge */}
