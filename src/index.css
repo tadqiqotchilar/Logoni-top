@@ -46,22 +46,21 @@
 
 body {
   margin: 0;
-  min-width: 320px;
+  padding: 0;
   min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  background: #e2e8f0;
+  background: #edf0f5;
   overflow-x: hidden;
 }
 
 #root {
   width: 100%;
   max-width: 480px;
+  margin: 0 auto;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   position: relative;
-  box-shadow: 0 0 40px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.03);
   background: var(--bg-gradient);
 }
 
