@@ -56,12 +56,13 @@ body {
   width: 100%;
   max-width: 480px;
   margin: 0 auto;
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   position: relative;
   box-shadow: 0 0 30px rgba(0, 0, 0, 0.03);
   background: var(--bg-gradient);
+  overflow: hidden;
 }
 
 /* Animations */

@@ -101,7 +101,7 @@
   height: 6px;
   background: #ffffff;
   border-radius: 3px;
-  margin: 10px 0 24px 0;
+  margin: 8px 0 12px 0;
   overflow: hidden;
   border: 1px solid rgba(0, 0, 0, 0.03);
 }
@@ -205,23 +205,25 @@
   color: #2563eb;
 }
 
-/* Quiz Screen */
 .quiz-screen {
   display: flex;
   flex-direction: column;
   flex: 1;
   justify-content: space-between;
+  height: 100%;
+  overflow: hidden;
 }
 
 .logo-card-wrapper {
-  margin-bottom: 24px;
+  margin-bottom: 12px;
   display: flex;
   justify-content: center;
 }
 
 .logo-card {
   width: 100%;
-  aspect-ratio: 1.15;
+  aspect-ratio: 1.45;
+  max-height: 170px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -229,7 +231,7 @@
   border-radius: var(--border-radius-lg);
   border: 1px solid var(--border-light);
   box-shadow: var(--soft-shadow);
-  padding: 24px;
+  padding: 16px;
   position: relative;
   overflow: hidden;
 }
@@ -244,10 +246,10 @@
 
 .logo-prompt-text {
   text-align: center;
-  font-size: 14px;
+  font-size: 13px;
   color: #6b7280;
   font-weight: 700;
-  margin-bottom: 24px;
+  margin-bottom: 10px;
 }
 
 /* Answer Input Slots - White with borders, changes for success/error */
@@ -255,22 +257,22 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 8px;
-  margin-bottom: 30px;
+  gap: 6px;
+  margin-bottom: 16px;
   width: 100%;
 }
 
 .input-slot {
-  width: 44px;
-  height: 48px;
-  border-radius: 12px;
+  width: 36px;
+  height: 40px;
+  border-radius: 9px;
   border: 1.5px solid var(--border-light);
   background: #ffffff;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
+  font-size: 19px;
   font-weight: 800;
   cursor: pointer;
   color: #111827;
@@ -308,17 +310,17 @@
 .keyboard-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 6px;
-  margin-bottom: 20px;
+  gap: 5px;
+  margin-bottom: 12px;
 }
 
 .keyboard-key {
-  aspect-ratio: 0.9;
-  border-radius: 8px;
+  aspect-ratio: 1;
+  border-radius: 6px;
   border: none;
   background: #1c1c1e;
   color: #ffffff;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 800;
   cursor: pointer;
   display: flex;
@@ -347,10 +349,10 @@
   border: none;
   color: #2563eb;
   font-weight: 800;
-  font-size: 15px;
+  font-size: 14px;
   cursor: pointer;
   text-align: center;
-  padding: 10px;
+  padding: 6px;
   transition: all 0.2s ease;
 }
 
