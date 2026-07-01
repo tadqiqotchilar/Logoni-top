@@ -13,7 +13,6 @@ import {
   Globe,
   Plus
 } from 'lucide-react';
-import { levelsData } from './levelsData.js';
 import { LogoSvg } from './LogoSvg.jsx';
 import './admin.css';
 
@@ -132,10 +131,6 @@ export function AdminApp() {
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
 
-  const [hideSystemLevels, setHideSystemLevels] = useState(() => {
-    return localStorage.getItem('logo_quiz_hide_system_levels') === 'true';
-  });
-
   const [customLevels, setCustomLevels] = useState(() => {
     const saved = localStorage.getItem('logo_quiz_custom_levels');
     return saved ? JSON.parse(saved) : [];
@@ -150,7 +145,7 @@ export function AdminApp() {
   const countryCodes = allCountries.reduce((acc, c) => ({ ...acc, [c.id]: c.code }), {});
   const countryList = allCountries;
 
-  const allLevels = hideSystemLevels ? customLevels : [...levelsData, ...customLevels];
+  const allLevels = customLevels;
 
   // Form states
   const [editLevelId, setEditLevelId] = useState(null);
@@ -371,26 +366,12 @@ export function AdminApp() {
     setCountryFormSuccess("Yangi davlat muvaffaqiyatli qo'shildi!");
   };
 
-  const handleRestoreSystemLevels = () => {
-    setHideSystemLevels(false);
-    localStorage.setItem('logo_quiz_hide_system_levels', 'false');
-    setSuccessMessage("Tizim logolari tiklandi va ko'rsatildi.");
-  };
-
-  const handleHideSystemLevels = () => {
-    setHideSystemLevels(true);
-    localStorage.setItem('logo_quiz_hide_system_levels', 'true');
-    setSuccessMessage('Tizim logolari yashirildi.');
-  };
-
   const handleClearAllData = () => {
     if (window.confirm("DIQQAT! Barcha maxsus logotiplar va qo'shilgan maxsus davlatlar o'chiriladi. Jadval butunlay bo'sh bo'ladi. Tasdiqlaysizmi?")) {
       setCustomLevels([]);
       setCustomCountries([]);
       localStorage.removeItem('logo_quiz_custom_levels');
       localStorage.removeItem('logo_quiz_custom_countries');
-      setHideSystemLevels(true);
-      localStorage.setItem('logo_quiz_hide_system_levels', 'true');
       localStorage.removeItem('logo_quiz_solved');
       setSuccessMessage("Barcha ma'lumotlar (va davlatlar) tozalandi.");
       handleClearForm();
@@ -444,7 +425,6 @@ export function AdminApp() {
         </div>
         <div className="header-actions">
           <span className="stats-badge">Darajalar: {allLevels.length} ta</span>
-          <span className="stats-badge custom-count">Maxsus: {customLevels.length} ta</span>
           <button className="btn-logout" onClick={handleLogout}>
             <LogOut size={16} /> Chiqish
           </button>
@@ -463,16 +443,7 @@ export function AdminApp() {
         <section className="dashboard-pane list-pane">
           <div className="pane-header">
             <h2>Mavjud Darajalar</h2>
-            <div className="pane-header-actions" style={{ display: 'flex', gap: '8px' }}>
-              {hideSystemLevels ? (
-                <button className="btn-restore-system" onClick={handleRestoreSystemLevels}>
-                  Tizim logolarini tiklash
-                </button>
-              ) : (
-                <button className="btn-hide-system" onClick={handleHideSystemLevels}>
-                  Tizim logolarini yashirish
-                </button>
-              )}
+            <div className="pane-header-actions">
               <button className="btn-reset-all" onClick={handleClearAllData}>
                 Barcha ma'lumotlarni tozalash
               </button>

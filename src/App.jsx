@@ -9,7 +9,6 @@ import {
   HelpCircle,
   ArrowLeft
 } from 'lucide-react';
-import { levelsData } from './levelsData.js';
 import { LogoSvg } from './LogoSvg.jsx';
 import './App.css';
 
@@ -260,16 +259,12 @@ function App() {
 
   const countryNames = allCountries.reduce((acc, c) => ({ ...acc, [c.id]: c.name }), {});
 
-  const [hideSystemLevels, setHideSystemLevels] = useState(() => {
-    return localStorage.getItem('logo_quiz_hide_system_levels') === 'true';
-  });
-
   const [customLevels, setCustomLevels] = useState(() => {
     const saved = localStorage.getItem('logo_quiz_custom_levels');
     return saved ? JSON.parse(saved) : [];
   });
 
-  const unfilteredLevels = hideSystemLevels ? customLevels : [...levelsData, ...customLevels];
+  const unfilteredLevels = customLevels;
   const allLevels = unfilteredLevels.filter(lvl => (lvl.country || 'uzbekistan') === selectedCountry);
 
   const getCountryProgress = (countryId) => {
@@ -327,9 +322,6 @@ function App() {
     const handleStorageChange = (e) => {
       if (e.key === 'logo_quiz_custom_levels') {
         setCustomLevels(e.newValue ? JSON.parse(e.newValue) : []);
-      }
-      if (e.key === 'logo_quiz_hide_system_levels') {
-        setHideSystemLevels(e.newValue === 'true');
       }
       if (e.key === 'logo_quiz_solved') {
         setSolvedLevels(e.newValue ? JSON.parse(e.newValue) : []);
