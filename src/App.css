@@ -8,6 +8,8 @@
   padding: 20px 12px; /* Slimmer side padding to maximize available card width */
   position: relative;
   justify-content: space-between;
+  min-height: 0;
+  overflow: hidden;
 }
 
 /* Soft iOS Card Panel */
