@@ -6,8 +6,7 @@ import {
   Lock, 
   Unlock, 
   RotateCcw, 
-  HelpCircle,
-  ArrowLeft
+  HelpCircle
 } from 'lucide-react';
 import { LogoSvg } from './LogoSvg.jsx';
 import './App.css';
@@ -430,37 +429,6 @@ function App() {
     }
   };
 
-  // Reset Progress with Telegram showConfirm check
-  const handleResetProgress = () => {
-    const message = "Haqiqatan ham o'yinni boshidan boshlamoqchimisiz? Barcha yutuqlaringiz o'chiriladi.";
-    const doReset = () => {
-      try {
-        synth.playTap();
-        tgHaptic.notification('warning');
-      } catch (e) {
-        console.warn("Haptics or audio failed during reset:", e);
-      }
-      setSolvedLevels([]);
-      setCoins(50);
-      localStorage.removeItem('logo_quiz_solved');
-      localStorage.setItem('logo_quiz_coins', '50');
-    };
-    
-    try {
-      if (window.Telegram?.WebApp?.showConfirm) {
-        window.Telegram.WebApp.showConfirm(message, (approved) => {
-          if (approved) doReset();
-        });
-      } else {
-        if (window.confirm(message)) {
-          doReset();
-        }
-      }
-    } catch (e) {
-      console.warn("Confirm failed, doing fallback direct reset:", e);
-      doReset();
-    }
-  };
 
   // Keyboard button click
   const handleKeyTap = (key) => {
@@ -729,13 +697,6 @@ function App() {
       {screen === 'grid' && (
         <div className="levels-screen pop-in">
           <div className="levels-header-bar">
-            <button className="btn-back-to-categories" onClick={() => {
-              synth.playTap();
-              tgHaptic.impact('light');
-              setScreen('category');
-            }}>
-              <ArrowLeft size={20} />
-            </button>
             <h2 className="levels-title">{countryNames[selectedCountry] || "Brendlar"}</h2>
             <div className="levels-progress">
               {allLevels.filter(lvl => solvedLevels.includes(lvl.id)).length} / {allLevels.length}
@@ -779,28 +740,6 @@ function App() {
               );
             })}
           </div>
-
-          {solvedLevels.length > 0 && (
-            <button 
-              className="btn-secondary" 
-              onClick={handleResetProgress}
-              style={{ 
-                marginTop: '10px',
-                marginBottom: '10px',
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                gap: '8px',
-                borderStyle: 'dashed',
-                borderColor: 'var(--danger)',
-                color: 'var(--danger)',
-                background: 'rgba(239, 68, 68, 0.03)',
-                boxShadow: 'none'
-              }}
-            >
-              O'yinni boshidan boshlamoq
-            </button>
-          )}
         </div>
       )}
 
