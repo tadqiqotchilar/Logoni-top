@@ -522,23 +522,40 @@
   background-color: var(--bg-color);
 }
 
-.category-header {
-  text-align: center;
+.category-header-new {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-top: 10px;
   margin-bottom: 24px;
 }
 
-.category-header h1 {
-  font-size: 24px;
-  font-weight: 800;
-  color: var(--text-dark);
-  margin-bottom: 4px;
+.logo-text {
+  font-size: 32px;
+  font-weight: 900;
+  font-style: italic;
+  color: #111827;
+  letter-spacing: -0.5px;
 }
 
-.category-header p {
-  font-size: 13px;
-  color: var(--text-secondary);
-  font-weight: 500;
+.settings-btn {
+  background: #ffffff;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1f2937;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.settings-btn:active {
+  transform: scale(0.95);
+  background-color: #f9fafb;
 }
 
 .regions-list {

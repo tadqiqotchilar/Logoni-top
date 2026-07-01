@@ -6,7 +6,8 @@ import {
   Lock, 
   Unlock, 
   RotateCcw, 
-  HelpCircle
+  HelpCircle,
+  Settings
 } from 'lucide-react';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from './firebase.js';
@@ -316,6 +317,7 @@ function App() {
   const [isHintModalOpen, setIsHintModalOpen] = useState(false);
   const [muted, setMuted] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   
   // Sync states with localStorage
   useEffect(() => {
@@ -648,6 +650,19 @@ function App() {
     }
   };
 
+  const handleResetGame = () => {
+    if (window.confirm("Haqiqatan ham o'yinni yangi holatda boshlamoqchimisiz? Barcha yutuqlaringiz va tangalaringiz o'chib ketadi!")) {
+      setSolvedLevels([]);
+      setCoins(50);
+      setCurrentLevelIdx(0);
+      localStorage.setItem('logo_quiz_solved', JSON.stringify([]));
+      localStorage.setItem('logo_quiz_coins', '50');
+      setIsSettingsOpen(false);
+      synth.playTap();
+      tgHaptic.impact('medium');
+    }
+  };
+
   if (isDbLoading) {
     return (
       <div className="game-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100dvh', background: 'var(--bg-primary)' }}>
@@ -667,9 +682,11 @@ function App() {
       {/* Screen 0: Country Category Screen */}
       {screen === 'category' && (
         <div className="category-screen pop-in">
-          <div className="category-header">
-            <h1>Milliy Brendlar Quiz</h1>
-            <p>Mamlakatni tanlang va o'yinni boshlang</p>
+          <div className="category-header-new">
+            <h1 className="logo-text">Logoni-top</h1>
+            <button className="settings-btn" onClick={() => { synth.playTap(); tgHaptic.impact('light'); setIsSettingsOpen(true); }}>
+              <Settings size={22} />
+            </button>
           </div>
 
           <div className="regions-list">
@@ -932,6 +949,61 @@ function App() {
             </div>
 
             <button className="btn-secondary" onClick={() => setIsHintModalOpen(false)}>
+              Yopish
+            </button>
+          </div>
+        </div>
+      )}
+      {/* Settings Sheet Modal */}
+      {isSettingsOpen && (
+        <div className="modal-overlay" onClick={() => setIsSettingsOpen(false)}>
+          <div className="modal-content pop-in" onClick={(e) => e.stopPropagation()}>
+            <div className="header-bar" style={{ marginBottom: '20px', padding: 0 }}>
+              <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#111827' }}>SOZLAMALAR</h3>
+            </div>
+
+            <div className="hints-list" style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
+              {/* Option 1: Turn off/on sound */}
+              <div 
+                className="hint-option-card"
+                onClick={toggleMute}
+                style={{ cursor: 'pointer' }}
+              >
+                <div className="hint-option-info">
+                  <div className="hint-option-icon" style={{ background: '#eff6ff', color: '#2563eb' }}>
+                    {muted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+                  </div>
+                  <div className="hint-option-text-container">
+                    <span className="hint-option-title">Ovozlar</span>
+                    <span className="hint-option-desc">{muted ? "Hozir ovozlar o'chirilgan" : "Hozir ovozlar yoqilgan"}</span>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 'bold', color: muted ? '#94a3b8' : '#10b981', background: muted ? '#f1f5f9' : '#ecfdf5', padding: '4px 10px', borderRadius: '20px' }}>
+                    {muted ? "O'CHIK" : "YONIQ"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Option 2: Reset game progress */}
+              <div 
+                className="hint-option-card"
+                onClick={handleResetGame}
+                style={{ cursor: 'pointer', border: '1px solid rgba(239, 68, 68, 0.2)' }}
+              >
+                <div className="hint-option-info">
+                  <div className="hint-option-icon" style={{ background: '#fef2f2', color: '#ef4444' }}>
+                    <RotateCcw size={18} />
+                  </div>
+                  <div className="hint-option-text-container">
+                    <span className="hint-option-title" style={{ color: '#ef4444' }}>O'yinni yangilash</span>
+                    <span className="hint-option-desc">Barcha natijalar va tangalarni 0 qiladi</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button className="btn-secondary" onClick={() => setIsSettingsOpen(false)}>
               Yopish
             </button>
           </div>
