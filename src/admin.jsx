@@ -153,7 +153,6 @@ export function AdminApp() {
   const [formAnswer, setFormAnswer] = useState('');
   const [formCategory, setFormCategory] = useState('');
   const [formCountry, setFormCountry] = useState('uzbekistan');
-  const [formDesc, setFormDesc] = useState('');
   const [formImagePartial, setFormImagePartial] = useState('');
   const [formImageFull, setFormImageFull] = useState('');
   const [formError, setFormError] = useState('');
@@ -248,7 +247,6 @@ export function AdminApp() {
     setFormAnswer(level.answer);
     setFormCategory(level.category || '');
     setFormCountry(level.country || 'uzbekistan');
-    setFormDesc(level.desc || '');
     setFormImagePartial(level.imagePartial);
     setFormImageFull(level.imageFull);
     setFormError('');
@@ -261,7 +259,6 @@ export function AdminApp() {
     setFormAnswer('');
     setFormCategory('');
     setFormCountry('uzbekistan');
-    setFormDesc('');
     setFormImagePartial('');
     setFormImageFull('');
     setFormError('');
@@ -309,7 +306,6 @@ export function AdminApp() {
       answer: formAnswer.toUpperCase(),
       category: formCategory,
       country: formCountry,
-      desc: formDesc,
       imagePartial: formImagePartial,
       imageFull: formImageFull,
       isCustom: true
@@ -724,16 +720,6 @@ export function AdminApp() {
                   )}
                 </div>
               </div>
-            </div>
-
-            <div className="form-field">
-              <label>Kompaniya haqida qisqacha tavsif (Description)</label>
-              <textarea 
-                value={formDesc} 
-                onChange={(e) => setFormDesc(e.target.value)}
-                placeholder="Logotip to'g'ri topilgandan keyin ko'rsatiladigan tarixiy/ma'lumotiy qisqacha matn..."
-                rows={3}
-              />
             </div>
 
             {/* Images Upload Area */}
