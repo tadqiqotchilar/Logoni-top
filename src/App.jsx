@@ -8,6 +8,8 @@ import {
   RotateCcw, 
   HelpCircle
 } from 'lucide-react';
+import { collection, onSnapshot } from 'firebase/firestore';
+import { db } from './firebase.js';
 import { LogoSvg } from './LogoSvg.jsx';
 import './App.css';
 
@@ -249,19 +251,39 @@ function App() {
   const [screen, setScreen] = useState('category');
   const [selectedCountry, setSelectedCountry] = useState('uzbekistan');
   
-  const [customCountries, setCustomCountries] = useState(() => {
-    const saved = localStorage.getItem('logo_quiz_custom_countries');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [customCountries, setCustomCountries] = useState([]);
+  const [customLevels, setCustomLevels] = useState([]);
+  const [isDbLoading, setIsDbLoading] = useState(true);
+
+  // Firestore real-time listeners
+  useEffect(() => {
+    let levelsReady = false;
+    let countriesReady = false;
+    const checkDone = () => {
+      if (levelsReady && countriesReady) setIsDbLoading(false);
+    };
+
+    const unsubLevels = onSnapshot(collection(db, 'levels'), (snap) => {
+      const levels = snap.docs
+        .map(d => d.data())
+        .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+      setCustomLevels(levels);
+      levelsReady = true;
+      checkDone();
+    });
+
+    const unsubCountries = onSnapshot(collection(db, 'countries'), (snap) => {
+      setCustomCountries(snap.docs.map(d => d.data()));
+      countriesReady = true;
+      checkDone();
+    });
+
+    return () => { unsubLevels(); unsubCountries(); };
+  }, []);
 
   const allCountries = [...DEFAULT_COUNTRIES, ...customCountries];
 
   const countryNames = allCountries.reduce((acc, c) => ({ ...acc, [c.id]: c.name }), {});
-
-  const [customLevels, setCustomLevels] = useState(() => {
-    const saved = localStorage.getItem('logo_quiz_custom_levels');
-    return saved ? JSON.parse(saved) : [];
-  });
 
   const unfilteredLevels = customLevels;
   const allLevels = unfilteredLevels.filter(lvl => (lvl.country || 'uzbekistan') === selectedCountry);
@@ -316,20 +338,14 @@ function App() {
     }
   }, []);
 
-  // Sync changes from other tabs (like Admin Panel)
+  // Sync changes from other tabs (solved levels and coins only)
   useEffect(() => {
     const handleStorageChange = (e) => {
-      if (e.key === 'logo_quiz_custom_levels') {
-        setCustomLevels(e.newValue ? JSON.parse(e.newValue) : []);
-      }
       if (e.key === 'logo_quiz_solved') {
         setSolvedLevels(e.newValue ? JSON.parse(e.newValue) : []);
       }
       if (e.key === 'logo_quiz_coins') {
         setCoins(e.newValue ? parseInt(e.newValue, 10) : 50);
-      }
-      if (e.key === 'logo_quiz_custom_countries') {
-        setCustomCountries(e.newValue ? JSON.parse(e.newValue) : []);
       }
     };
 
@@ -631,6 +647,18 @@ function App() {
       synth.playTap();
     }
   };
+
+  if (isDbLoading) {
+    return (
+      <div className="game-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100dvh', background: 'var(--bg-primary)' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏆</div>
+          <div style={{ width: '40px', height: '40px', border: '3px solid #e2e8f0', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 16px' }}></div>
+          <p style={{ color: 'var(--text-secondary)', fontWeight: 600, fontSize: '14px' }}>O'yin yuklanmoqda...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="game-container">

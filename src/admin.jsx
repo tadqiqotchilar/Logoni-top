@@ -11,8 +11,19 @@ import {
   AlertCircle,
   ChevronDown,
   Globe,
-  Plus
+  Plus,
+  Loader
 } from 'lucide-react';
+import {
+  collection,
+  doc,
+  setDoc,
+  deleteDoc,
+  onSnapshot,
+  getDocs,
+  writeBatch
+} from 'firebase/firestore';
+import { db } from './firebase.js';
 import { LogoSvg } from './LogoSvg.jsx';
 import './admin.css';
 
@@ -131,15 +142,35 @@ export function AdminApp() {
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
 
-  const [customLevels, setCustomLevels] = useState(() => {
-    const saved = localStorage.getItem('logo_quiz_custom_levels');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [customLevels, setCustomLevels] = useState([]);
+  const [customCountries, setCustomCountries] = useState([]);
+  const [isDbLoading, setIsDbLoading] = useState(true);
 
-  const [customCountries, setCustomCountries] = useState(() => {
-    const saved = localStorage.getItem('logo_quiz_custom_countries');
-    return saved ? JSON.parse(saved) : [];
-  });
+  // Firestore real-time listeners
+  useEffect(() => {
+    let levelsReady = false;
+    let countriesReady = false;
+    const checkDone = () => {
+      if (levelsReady && countriesReady) setIsDbLoading(false);
+    };
+
+    const unsubLevels = onSnapshot(collection(db, 'levels'), (snap) => {
+      const levels = snap.docs
+        .map(d => d.data())
+        .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+      setCustomLevels(levels);
+      levelsReady = true;
+      checkDone();
+    });
+
+    const unsubCountries = onSnapshot(collection(db, 'countries'), (snap) => {
+      setCustomCountries(snap.docs.map(d => d.data()));
+      countriesReady = true;
+      checkDone();
+    });
+
+    return () => { unsubLevels(); unsubCountries(); };
+  }, []);
 
   const allCountries = [...DEFAULT_COUNTRIES, ...customCountries];
   const countryCodes = allCountries.reduce((acc, c) => ({ ...acc, [c.id]: c.code }), {});
@@ -264,30 +295,32 @@ export function AdminApp() {
     setFormError('');
   };
 
-  const handleDeleteLevel = (id) => {
+  const handleDeleteLevel = async (id) => {
     if (window.confirm("Haqiqatan ham ushbu logotipni o'chirmoqchimisiz?")) {
-      const nextCustomLevels = customLevels.filter(lvl => lvl.id !== id);
-      setCustomLevels(nextCustomLevels);
-      localStorage.setItem('logo_quiz_custom_levels', JSON.stringify(nextCustomLevels));
+      try {
+        await deleteDoc(doc(db, 'levels', id));
 
-      // Remove from solved list if it was solved
-      const savedSolved = localStorage.getItem('logo_quiz_solved');
-      if (savedSolved) {
-        const solvedList = JSON.parse(savedSolved);
-        if (solvedList.includes(id)) {
-          const nextSolved = solvedList.filter(sId => sId !== id);
-          localStorage.setItem('logo_quiz_solved', JSON.stringify(nextSolved));
+        // Remove from solved list if it was solved
+        const savedSolved = localStorage.getItem('logo_quiz_solved');
+        if (savedSolved) {
+          const solvedList = JSON.parse(savedSolved);
+          if (solvedList.includes(id)) {
+            const nextSolved = solvedList.filter(sId => sId !== id);
+            localStorage.setItem('logo_quiz_solved', JSON.stringify(nextSolved));
+          }
         }
-      }
 
-      setSuccessMessage('Logotip muvaffaqiyatli o\'chirildi.');
-      if (editLevelId === id) {
-        handleClearForm();
+        setSuccessMessage('Logotip muvaffaqiyatli o\'chirildi.');
+        if (editLevelId === id) {
+          handleClearForm();
+        }
+      } catch (err) {
+        setFormError(`O'chirishda xato: ${err.message}`);
       }
     }
   };
 
-  const handleSaveLevel = (e) => {
+  const handleSaveLevel = async (e) => {
     e.preventDefault();
 
     if (!formImagePartial || !formImageFull) {
@@ -300,32 +333,35 @@ export function AdminApp() {
       return;
     }
 
+    const levelId = editLevelId || `custom_${Date.now()}`;
     const levelData = {
-      id: editLevelId || `custom_${Date.now()}`,
+      id: levelId,
       name: formName,
       answer: formAnswer.toUpperCase(),
       category: formCategory,
       country: formCountry,
       imagePartial: formImagePartial,
       imageFull: formImageFull,
-      isCustom: true
+      isCustom: true,
+      createdAt: editLevelId
+        ? (customLevels.find(l => l.id === editLevelId)?.createdAt || Date.now())
+        : Date.now()
     };
 
-    let nextCustomLevels;
-    if (editLevelId) {
-      nextCustomLevels = customLevels.map(lvl => lvl.id === editLevelId ? levelData : lvl);
-      setSuccessMessage('Logotip muvaffaqiyatli tahrirlandi.');
-    } else {
-      nextCustomLevels = [...customLevels, levelData];
-      setSuccessMessage('Yangi logotip muvaffaqiyatli qo\'shildi.');
+    try {
+      await setDoc(doc(db, 'levels', levelId), levelData);
+      if (editLevelId) {
+        setSuccessMessage('Logotip muvaffaqiyatli tahrirlandi.');
+      } else {
+        setSuccessMessage('Yangi logotip muvaffaqiyatli qo\'shildi.');
+      }
+      handleClearForm();
+    } catch (err) {
+      setFormError(`Firebase xatosi: ${err.message}. Firestore rules to'g'ri sozlanganligini tekshiring.`);
     }
-
-    setCustomLevels(nextCustomLevels);
-    localStorage.setItem('logo_quiz_custom_levels', JSON.stringify(nextCustomLevels));
-    handleClearForm();
   };
 
-  const handleSaveCountry = (e) => {
+  const handleSaveCountry = async (e) => {
     e.preventDefault();
 
     if (!selectedWorldCountry) {
@@ -350,24 +386,30 @@ export function AdminApp() {
       region: finalRegion
     };
 
-    const nextCountries = [...customCountries, newCountry];
-    setCustomCountries(nextCountries);
-    localStorage.setItem('logo_quiz_custom_countries', JSON.stringify(nextCountries));
-
-    // Reset Form
-    setSelectedWorldCountry(null);
-    setCountryFormRegion("O'RTA OSIYO");
-    setIsCustomRegion(false);
-    setCountryFormError('');
-    setCountryFormSuccess("Yangi davlat muvaffaqiyatli qo'shildi!");
+    try {
+      await setDoc(doc(db, 'countries', newId), newCountry);
+      setSelectedWorldCountry(null);
+      setCountryFormRegion("O'RTA OSIYO");
+      setIsCustomRegion(false);
+      setCountryFormError('');
+      setCountryFormSuccess("Yangi davlat muvaffaqiyatli qo'shildi!");
+    } catch (err) {
+      setCountryFormError(`Firebase xatosi: ${err.message}`);
+    }
   };
 
-  const handleClearAllData = () => {
+  const handleClearAllData = async () => {
     if (window.confirm("DIQQAT! Barcha maxsus logotiplar va qo'shilgan maxsus davlatlar o'chiriladi. Jadval butunlay bo'sh bo'ladi. Tasdiqlaysizmi?")) {
-      setCustomLevels([]);
-      setCustomCountries([]);
-      localStorage.removeItem('logo_quiz_custom_levels');
-      localStorage.removeItem('logo_quiz_custom_countries');
+      const batch = writeBatch(db);
+
+      const levelsSnap = await getDocs(collection(db, 'levels'));
+      levelsSnap.docs.forEach(d => batch.delete(d.ref));
+
+      const countriesSnap = await getDocs(collection(db, 'countries'));
+      countriesSnap.docs.forEach(d => batch.delete(d.ref));
+
+      await batch.commit();
+
       localStorage.removeItem('logo_quiz_solved');
       setSuccessMessage("Barcha ma'lumotlar (va davlatlar) tozalandi.");
       handleClearForm();
@@ -407,6 +449,17 @@ export function AdminApp() {
             </div>
             <button type="submit" className="btn-login">Kirish</button>
           </form>
+        </div>
+      </div>
+    );
+  }
+
+  if (isDbLoading) {
+    return (
+      <div className="admin-dashboard-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
+        <div style={{ textAlign: 'center', color: '#64748b' }}>
+          <Loader size={36} style={{ animation: 'spin 1s linear infinite', marginBottom: '12px', color: '#2563eb' }} />
+          <p style={{ fontWeight: 600, fontSize: '14px' }}>Firebase ma'lumotlar yuklanmoqda...</p>
         </div>
       </div>
     );
